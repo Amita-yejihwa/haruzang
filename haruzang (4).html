@@ -1,0 +1,1896 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>하루장</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700;900&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --paper: #1E3A5C;
+  --paper-dark: #27496F;
+  --paper-line: #4C7EA8;
+  --ink: #EAF2F8;
+  --ink-soft: #9FBEDA;
+  --stamp-red: #FF8A66;
+  --stamp-red-dark: #B8431E;
+  --brass: #E8B84B;
+  --sage: #4FD1A5;
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Noto Sans KR', sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+
+.wrap{
+  max-width:960px;
+  margin:0 auto;
+  padding:28px 20px 60px;
+}
+
+/* header */
+.masthead{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  border-bottom:3px double var(--ink);
+  padding-bottom:14px;
+  margin-bottom:16px;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.masthead h1{
+  font-family:'Noto Serif KR', serif;
+  font-weight:900;
+  font-size:2.1rem;
+  letter-spacing:0.08em;
+  margin:0;
+}
+.masthead .sub{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.82rem;
+  color:var(--ink-soft);
+  text-align:right;
+  line-height:1.5;
+}
+.masthead .sub .week{ color:var(--brass); }
+
+.date-picker-row{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+}
+.date-display{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.82rem;
+  color:var(--ink-soft);
+}
+.date-input{
+  background:var(--paper-dark);
+  border:1px solid var(--paper-line);
+  border-radius:2px;
+  color:var(--ink);
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.76rem;
+  padding:3px 6px;
+  cursor:pointer;
+}
+.date-input:focus{ outline:none; border-color:var(--brass); }
+
+.error-banner{
+  background:#3A1F1F;
+  border:1px solid var(--stamp-red);
+  color:var(--stamp-red);
+  border-radius:2px;
+  padding:9px 14px;
+  font-size:0.85rem;
+  margin-bottom:16px;
+}
+
+.past-banner{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  background:var(--paper-dark);
+  border:1px solid var(--brass);
+  border-radius:2px;
+  padding:9px 14px;
+  font-size:0.85rem;
+  color:var(--ink);
+  margin-bottom:16px;
+}
+.jump-today-btn{
+  margin-left:auto;
+  background:none;
+  border:1px solid var(--brass);
+  color:var(--brass);
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.76rem;
+  padding:4px 10px;
+  border-radius:2px;
+  cursor:pointer;
+}
+.jump-today-btn:hover{ background:var(--brass); color:var(--paper); }
+
+/* tabs */
+.tabbar{
+  display:flex;
+  gap:4px;
+  margin-bottom:20px;
+  border-bottom:1px solid var(--paper-line);
+}
+.tab-btn{
+  background:none;
+  border:none;
+  padding:10px 16px;
+  font-family:'Noto Serif KR', serif;
+  font-weight:700;
+  font-size:0.92rem;
+  color:var(--ink-soft);
+  cursor:pointer;
+  border-bottom:3px solid transparent;
+  margin-bottom:-1px;
+}
+.tab-btn.active{
+  color:var(--ink);
+  border-bottom-color:var(--stamp-red);
+}
+.tab-btn:hover{ color:var(--ink); }
+
+/* ledger summary strip */
+.ledger-strip{
+  display:flex;
+  gap:14px;
+  margin-bottom:12px;
+  flex-wrap:wrap;
+}
+.ledger-strip.secondary{ margin-bottom:20px; }
+.ledger-chip{
+  flex:1;
+  min-width:130px;
+  background:var(--paper-dark);
+  border:1px solid var(--paper-line);
+  border-radius:2px;
+  padding:10px 14px;
+}
+.ledger-chip .lbl{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.72rem;
+  color:var(--ink-soft);
+  display:block;
+  margin-bottom:2px;
+}
+.ledger-chip .val{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:1.1rem;
+  font-weight:600;
+}
+.ledger-chip .val.income{ color:var(--sage); }
+.ledger-chip .val.expense{ color:var(--stamp-red); }
+.strip-heading{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.7rem;
+  color:var(--brass);
+  margin:0 0 6px;
+  letter-spacing:0.05em;
+}
+
+/* layout */
+.board{
+  display:grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap:22px;
+}
+@media (max-width: 720px){
+  .board{ grid-template-columns: 1fr; }
+}
+
+.panel{
+  background:var(--paper-dark);
+  border:1px solid var(--paper-line);
+  border-radius:2px;
+  padding:18px 18px 20px;
+  position:relative;
+}
+.panel-title{
+  font-family:'Noto Serif KR', serif;
+  font-weight:700;
+  font-size:1.05rem;
+  margin:0 0 14px;
+  padding-bottom:8px;
+  border-bottom:1.5px solid var(--paper-line);
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+}
+.panel-title .count{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.78rem;
+  color:var(--ink-soft);
+  font-weight:400;
+}
+
+/* add form */
+.add-row{
+  display:flex;
+  gap:8px;
+  margin-bottom:10px;
+  flex-wrap:wrap;
+}
+.add-row input[type="text"]{
+  flex:1 1 160px;
+  background:var(--paper);
+  border:1px solid var(--paper-line);
+  border-radius:2px;
+  padding:10px 12px;
+  font-family:'Noto Sans KR', sans-serif;
+  font-size:0.92rem;
+  color:var(--ink);
+  min-width:0;
+}
+.add-row input[type="number"]{
+  width:92px;
+  background:var(--paper);
+  border:1px solid var(--paper-line);
+  border-radius:2px;
+  padding:10px 8px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.85rem;
+  color:var(--ink);
+}
+select{
+  background:var(--paper);
+  border:1px solid var(--paper-line);
+  border-radius:2px;
+  padding:9px 8px;
+  font-family:'Noto Sans KR', sans-serif;
+  font-size:0.84rem;
+  color:var(--ink);
+}
+.add-row input:focus, select:focus{
+  outline:none;
+  border-color:var(--brass);
+}
+.type-toggle{
+  display:flex;
+  border:1px solid var(--paper-line);
+  border-radius:2px;
+  overflow:hidden;
+  flex:none;
+}
+.type-toggle button{
+  border:none;
+  background:var(--paper);
+  color:var(--ink-soft);
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.82rem;
+  padding:0 10px;
+  cursor:pointer;
+}
+.type-toggle button.active[data-type="expense"]{ background:var(--stamp-red); color:var(--paper); }
+.type-toggle button.active[data-type="income"]{ background:var(--sage); color:var(--paper); }
+
+.add-row button.submit{
+  background:var(--ink);
+  color:var(--paper);
+  border:none;
+  border-radius:2px;
+  padding:0 18px;
+  font-family:'Noto Serif KR', serif;
+  font-weight:700;
+  font-size:0.9rem;
+  cursor:pointer;
+  transition:background .15s;
+  flex:none;
+}
+.add-row button.submit:hover{ background:var(--stamp-red-dark); color:var(--ink); }
+
+.amount-toggle-btn{
+  flex:none;
+  width:40px;
+  background:var(--paper);
+  border:1px solid var(--paper-line);
+  border-radius:2px;
+  color:var(--brass);
+  font-family:'IBM Plex Mono', monospace;
+  font-weight:600;
+  font-size:0.95rem;
+  cursor:pointer;
+}
+.amount-toggle-btn:hover{ border-color:var(--brass); background:var(--paper-dark); }
+
+.add-hint{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.72rem;
+  color:var(--ink-soft);
+  margin:0 0 6px;
+}
+
+.memo-note{
+  font-family:'Noto Sans KR', sans-serif;
+  font-size:0.78rem;
+  color:var(--brass);
+  background:var(--paper-dark);
+  border:1px dashed var(--brass);
+  border-radius:2px;
+  padding:8px 12px;
+  margin:0 0 14px;
+  line-height:1.5;
+}
+
+/* task list */
+.tasks{ list-style:none; margin:0; padding:0; }
+.task-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 2px;
+  border-bottom:1px dashed var(--paper-line);
+  position:relative;
+  flex-wrap:wrap;
+}
+.task-row:last-child{ border-bottom:none; }
+
+.checkbox{
+  width:22px; height:22px;
+  border:2px solid var(--ink);
+  border-radius:3px;
+  flex:none;
+  cursor:pointer;
+  position:relative;
+  background:transparent;
+}
+.checkbox.checked{ border-color:var(--stamp-red); }
+.checkbox.checked::after{
+  content:'';
+  position:absolute;
+  left:4px; top:0px;
+  width:8px; height:13px;
+  border-right:2.5px solid var(--stamp-red);
+  border-bottom:2.5px solid var(--stamp-red);
+  transform:rotate(40deg);
+}
+
+.task-text{
+  flex:1;
+  font-size:0.95rem;
+  line-height:1.4;
+  word-break:break-word;
+  cursor:text;
+  min-width:80px;
+}
+.task-text.done{
+  color:var(--ink-soft);
+  text-decoration:line-through;
+  text-decoration-color:var(--stamp-red);
+}
+.task-amount{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.85rem;
+  flex:none;
+  white-space:nowrap;
+}
+.task-amount.expense{ color:var(--stamp-red); }
+.task-amount.income{ color:var(--sage); }
+
+.tag-pill{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.68rem;
+  color:var(--brass);
+  border:1px solid var(--brass);
+  border-radius:10px;
+  padding:1px 8px;
+  flex:none;
+  white-space:nowrap;
+}
+
+.icon-btn{
+  background:none;
+  border:none;
+  color:var(--paper-line);
+  font-size:0.95rem;
+  cursor:pointer;
+  flex:none;
+  padding:2px 4px;
+  line-height:1;
+}
+.icon-btn:hover{ color:var(--stamp-red); }
+.icon-btn.save{ color:var(--sage); }
+.icon-btn.save:hover{ color:var(--sage); opacity:0.75; }
+
+.empty-tasks, .empty-log, .empty-journal{
+  color:var(--ink-soft);
+  font-size:0.88rem;
+  padding:16px 2px;
+}
+
+/* edit row */
+.edit-row{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  align-items:center;
+  flex:1;
+  width:100%;
+}
+.edit-row input[type="text"]{
+  flex:1 1 140px;
+  background:var(--paper);
+  border:1px solid var(--brass);
+  border-radius:2px;
+  padding:7px 9px;
+  font-size:0.9rem;
+  font-family:'Noto Sans KR', sans-serif;
+}
+.edit-row input[type="number"]{
+  width:86px;
+  background:var(--paper);
+  border:1px solid var(--brass);
+  border-radius:2px;
+  padding:7px 7px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.82rem;
+}
+.edit-row textarea{
+  flex:1 1 100%;
+  background:var(--paper);
+  border:1px solid var(--brass);
+  border-radius:2px;
+  padding:8px 10px;
+  font-family:'Noto Sans KR', sans-serif;
+  font-size:0.9rem;
+  resize:vertical;
+  min-height:44px;
+}
+
+/* stamp burst */
+.stamp-burst{
+  position:absolute;
+  right:8px; top:50%;
+  transform:translateY(-50%) rotate(-12deg) scale(1.6);
+  font-family:'Noto Serif KR', serif;
+  font-weight:900;
+  font-size:1.3rem;
+  color:var(--stamp-red);
+  border:3px solid var(--stamp-red);
+  border-radius:6px;
+  padding:2px 8px;
+  opacity:0;
+  pointer-events:none;
+}
+.stamp-burst.play{ animation:stampIn .55s ease-out forwards; }
+@keyframes stampIn{
+  0%{ opacity:0; transform:translateY(-50%) rotate(-12deg) scale(2.2); }
+  55%{ opacity:0.9; transform:translateY(-50%) rotate(-8deg) scale(0.95); }
+  75%{ opacity:0.9; transform:translateY(-50%) rotate(-8deg) scale(1.08); }
+  100%{ opacity:0; transform:translateY(-50%) rotate(-8deg) scale(1.05); }
+}
+
+/* log */
+.log{ list-style:none; margin:0; padding:0; max-height:420px; overflow-y:auto; }
+.log-row{
+  display:flex;
+  gap:8px;
+  padding:8px 2px;
+  border-bottom:1px dotted var(--paper-line);
+  font-size:0.88rem;
+  align-items:baseline;
+  flex-wrap:wrap;
+  animation:logIn .3s ease-out;
+}
+@keyframes logIn{
+  from{ opacity:0; transform:translateX(6px); }
+  to{ opacity:1; transform:translateX(0); }
+}
+.log-time{
+  font-family:'IBM Plex Mono', monospace;
+  color:var(--brass);
+  font-size:0.82rem;
+  flex:none;
+  width:52px;
+}
+.log-label{ color:var(--ink); flex:1; min-width:80px; cursor:text; }
+.log-amount{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.85rem;
+  flex:none;
+}
+.log-amount.expense{ color:var(--stamp-red); }
+.log-amount.income{ color:var(--sage); }
+
+/* journal */
+.journal-board{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:22px;
+}
+@media (max-width: 720px){
+  .journal-board{ grid-template-columns: 1fr; }
+}
+.journal-panel{
+  background:var(--paper-dark);
+  border:1px solid var(--paper-line);
+  border-radius:2px;
+  padding:16px 18px 18px;
+}
+.journal-add-row{
+  display:flex;
+  gap:8px;
+  margin-bottom:12px;
+}
+.journal-add-row textarea{
+  flex:1;
+  resize:none;
+  background:var(--paper);
+  border:1px solid var(--paper-line);
+  border-radius:2px;
+  padding:9px 12px;
+  font-family:'Noto Sans KR', sans-serif;
+  font-size:0.9rem;
+  color:var(--ink);
+  min-height:40px;
+  line-height:1.4;
+}
+.journal-add-row textarea:focus{ outline:none; border-color:var(--brass); }
+.journal-add-row button{
+  background:var(--ink);
+  color:var(--paper);
+  border:none;
+  border-radius:2px;
+  padding:0 16px;
+  font-family:'Noto Serif KR', serif;
+  font-weight:700;
+  font-size:0.86rem;
+  cursor:pointer;
+  flex:none;
+}
+.journal-add-row button:hover{ background:var(--stamp-red-dark); color:var(--ink); }
+
+.journal-list{ list-style:none; margin:0; padding:0; }
+.journal-entry{
+  display:flex;
+  gap:10px;
+  padding:9px 2px;
+  border-bottom:1px dotted var(--paper-line);
+  align-items:flex-start;
+  animation:logIn .3s ease-out;
+}
+.journal-entry:last-child{ border-bottom:none; }
+.journal-entry .mark{
+  font-family:'Noto Serif KR', serif;
+  color:var(--brass);
+  font-size:1.1rem;
+  line-height:1.3;
+  flex:none;
+}
+.journal-entry .body{
+  flex:1;
+  font-size:0.9rem;
+  line-height:1.5;
+  word-break:break-word;
+  cursor:text;
+}
+.journal-entry .time{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.72rem;
+  color:var(--ink-soft);
+  display:block;
+  margin-top:2px;
+}
+
+/* history */
+/* stats */
+.insight-line{
+  font-family:'Noto Serif KR', serif;
+  font-size:0.92rem;
+  color:var(--ink);
+  background:var(--paper-dark);
+  border:1px solid var(--paper-line);
+  border-left:3px solid var(--brass);
+  border-radius:2px;
+  padding:10px 14px;
+  margin:0 0 20px;
+}
+.insight-line b{ color:var(--brass); }
+
+.bar-list{ display:flex; flex-direction:column; gap:10px; }
+.bar-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.bar-label{
+  width:48px;
+  flex:none;
+  font-size:0.85rem;
+  color:var(--ink);
+}
+.bar-track{
+  flex:1;
+  background:var(--paper);
+  border:1px solid var(--paper-line);
+  border-radius:2px;
+  height:14px;
+  overflow:hidden;
+}
+.bar-fill{
+  height:100%;
+  border-radius:1px;
+}
+.bar-fill.expense{ background:var(--stamp-red); }
+.bar-fill.income{ background:var(--sage); }
+.bar-value{
+  width:76px;
+  flex:none;
+  text-align:right;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.78rem;
+  color:var(--ink-soft);
+}
+
+.vchart{
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
+  height:150px;
+  padding-top:10px;
+}
+.vcol{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  height:100%;
+}
+.vcol-track{
+  flex:1;
+  width:100%;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+}
+.vcol-bar{
+  width:60%;
+  min-height:2px;
+  background:var(--stamp-red);
+  opacity:0.55;
+  border-radius:2px 2px 0 0;
+}
+.vcol-bar.highlight{ opacity:1; }
+.vcol-label{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.76rem;
+  color:var(--ink-soft);
+  margin-top:6px;
+}
+
+.net-chart{
+  display:flex;
+  align-items:stretch;
+  gap:14px;
+  padding:6px 4px 0;
+}
+.net-col{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.net-top{
+  height:75px;
+  width:100%;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+}
+.net-bottom{
+  height:75px;
+  width:100%;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+}
+.net-zero{
+  width:100%;
+  border-top:1px dashed var(--paper-line);
+}
+.net-bar{
+  width:55%;
+  min-height:2px;
+  border-radius:2px;
+}
+.net-bar.income{ background:var(--sage); }
+.net-bar.expense{ background:var(--stamp-red); }
+.net-label{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.76rem;
+  color:var(--ink-soft);
+  margin-top:6px;
+}
+
+.add-past-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  background:var(--paper-dark);
+  border:1px solid var(--paper-line);
+  border-radius:2px;
+  padding:10px 14px;
+  margin-bottom:16px;
+}
+.add-past-label{
+  font-size:0.86rem;
+  color:var(--ink);
+  flex:1;
+  min-width:120px;
+}
+.add-past-row .date-input{
+  padding:6px 8px;
+  font-size:0.82rem;
+}
+.add-past-row button.submit{
+  padding:0 16px;
+  height:32px;
+}
+
+.history-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.export-btn{
+  background:none;
+  border:1px solid var(--brass);
+  color:var(--brass);
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.78rem;
+  padding:7px 14px;
+  border-radius:2px;
+  cursor:pointer;
+}
+.export-btn:hover{ background:var(--brass); color:var(--paper); }
+
+.month-group{ margin-bottom:18px; }
+.month-head{
+  font-family:'Noto Serif KR', serif;
+  font-weight:700;
+  font-size:1rem;
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  border-bottom:2px solid var(--ink);
+  padding-bottom:6px;
+  margin-bottom:8px;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.month-head .month-totals{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.78rem;
+  font-weight:400;
+  color:var(--ink-soft);
+}
+.month-head .month-totals .income{ color:var(--sage); }
+.month-head .month-totals .expense{ color:var(--stamp-red); }
+
+.history-day{
+  border:1px solid var(--paper-line);
+  border-radius:2px;
+  margin-bottom:8px;
+  overflow:hidden;
+}
+.history-day-head{
+  background:var(--paper-dark);
+  padding:9px 14px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.82rem;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  cursor:pointer;
+  flex-wrap:wrap;
+}
+.history-day-head:hover{ background:#31597F; }
+.history-day-head .hd-net.pos{ color:var(--sage); }
+.history-day-head .hd-net.neg{ color:var(--stamp-red); }
+.history-day-body{ padding:6px 14px 10px; display:none; }
+.history-day-body.open{ display:block; }
+.history-day-body .log-row{ font-size:0.85rem; }
+.sub-heading{
+  font-family:'Noto Serif KR', serif;
+  font-weight:700;
+  font-size:0.82rem;
+  color:var(--ink);
+  margin:10px 0 2px;
+}
+
+.empty-state{
+  color:var(--ink-soft);
+  font-size:0.9rem;
+  padding:20px 4px;
+  text-align:center;
+}
+
+.footnote{
+  margin-top:26px;
+  text-align:center;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.72rem;
+  color:var(--paper-line);
+}
+
+.loading-msg{
+  text-align:center;
+  padding:40px;
+  color:var(--ink-soft);
+  font-family:'IBM Plex Mono', monospace;
+}
+
+/* modal */
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(34,48,63,0.55);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:50;
+  padding:20px;
+}
+.modal-box{
+  background:var(--paper);
+  border:1px solid var(--paper-line);
+  border-radius:3px;
+  max-width:600px;
+  width:100%;
+  max-height:80vh;
+  display:flex;
+  flex-direction:column;
+  padding:20px;
+}
+.modal-box h3{
+  font-family:'Noto Serif KR', serif;
+  margin:0 0 10px;
+}
+.modal-box textarea{
+  flex:1;
+  min-height:280px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.8rem;
+  background:var(--paper-dark);
+  border:1px solid var(--paper-line);
+  border-radius:2px;
+  padding:12px;
+  color:var(--ink);
+  white-space:pre;
+  overflow:auto;
+}
+.modal-actions{
+  display:flex;
+  gap:8px;
+  margin-top:12px;
+  justify-content:flex-end;
+}
+.modal-actions button{
+  font-family:'Noto Serif KR', serif;
+  font-weight:700;
+  font-size:0.85rem;
+  padding:8px 16px;
+  border-radius:2px;
+  cursor:pointer;
+  border:1px solid var(--ink);
+  background:none;
+  color:var(--ink);
+}
+.modal-actions button.primary{
+  background:var(--ink);
+  color:var(--paper);
+}
+.modal-note{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.72rem;
+  color:var(--ink-soft);
+  margin-top:6px;
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <div class="loading-msg" id="loading">불러오는 중…</div>
+</div>
+
+<script>
+const STORAGE_KEY = 'haruzang:data';
+const SUPABASE_URL = 'https://bwljqdgtxnhvlmxsflji.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iPU2EVJAyB-e1m93CgPfgA_zy-NGwg8';
+const SUPABASE_TABLE = 'haruzang_kv';
+const WEEKDAYS = ['일','월','화','수','목','금','토'];
+const CATEGORY_RULES = {
+  '식비': ['밥','점심','저녁','아침','커피','카페','식당','배달','치킨','피자','간식','브런치','술','맥주','편의점','디저트'],
+  '주거/공과금': ['월세','관리비','전기세','수도세','가스비','공과금','전기요금','수도요금','가스요금','아파트관리비'],
+  '교통': ['택시','버스','지하철','기차','주유','기름','톨게이트','교통카드','ktx','주차','환승'],
+  '통신': ['핸드폰','휴대폰','통신비','통신요금','인터넷','와이파이','요금제','데이터','유심','스마트폰'],
+  '구독료': ['구독','넷플릭스','왓챠','디즈니플러스','유튜브프리미엄','멜론','스포티파이','정기결제','쿠팡와우'],
+  '의료비': ['병원','약국','약값','진료비','치과','한의원','피부과','검진'],
+  '교육비': ['학원','수강료','교재','인강','과외'],
+  '문화/여가': ['영화','공연','전시','책','콘서트','게임','음악','도서'],
+  '뷰티': ['미용실','화장품','네일','헤어','메이크업','피부관리'],
+  '보험료': ['보험','보험료'],
+  '경조사비': ['축의금','조의금','부조금','결혼식','장례식','돌잔치'],
+  '여행': ['여행','항공권','숙소','호텔','펜션'],
+  '생활용품': ['마트','생활용품','세제','휴지','장보기','세탁'],
+  '저축/투자': ['저축','적금','예금','투자','주식','펀드'],
+  '업무': ['회의','출장','사무','미팅','세미나']
+};
+function categorize(text){
+  const lower = text.toLowerCase();
+  for(const cat in CATEGORY_RULES){
+    if(CATEGORY_RULES[cat].some(k=> lower.includes(k))) return cat;
+  }
+  return '기타';
+}
+
+let db = { days: {} };
+let activeTab = 'today'; // today | journal | history | stats
+let selectedDateKey = null;
+
+let editingTaskId = null;
+let editDraft = { text:'', amount:'' };
+let editingGratitudeId = null;
+let editingLessonId = null;
+let editJournalDraft = '';
+
+let historyOpenDays = {};
+let justStampedId = null;
+let exportModal = { open:false, text:'' };
+let saveStatus = 'ok'; // ok | error | saving
+
+function todayKey(d = new Date()){
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function monthKeyOf(dateKey){ return dateKey.slice(0,7); }
+function fmtTime(ts){
+  const d = new Date(ts);
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function fmtDateLabel(key){
+  const [y,m,d] = key.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  return `${y}.${String(m).padStart(2,'0')}.${String(d).padStart(2,'0')} (${WEEKDAYS[dt.getDay()]})`;
+}
+function fmtMonthLabel(mkey){
+  const [y,m] = mkey.split('-').map(Number);
+  return `${y}년 ${m}월`;
+}
+function fmtWon(n){
+  const sign = n < 0 ? '-' : '';
+  return sign + Math.abs(n).toLocaleString('ko-KR') + '원';
+}
+function weekNumber(d){
+  const start = new Date(d.getFullYear(),0,1);
+  const diff = (d - start) + (start.getTimezoneOffset()-d.getTimezoneOffset())*60000;
+  return Math.floor(diff/86400000/7)+1;
+}
+function uid(){ return 't'+Date.now()+Math.random().toString(36).slice(2,7); }
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function supabaseHeaders(extra){
+  return Object.assign({
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`
+  }, extra || {});
+}
+
+async function loadDB(){
+  try{
+    const url = `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?key=eq.${encodeURIComponent(STORAGE_KEY)}&select=value`;
+    const res = await fetch(url, { headers: supabaseHeaders() });
+    if(!res.ok) throw new Error('load failed: ' + res.status);
+    const rows = await res.json();
+    if(rows && rows.length > 0 && rows[0].value){
+      db = JSON.parse(rows[0].value);
+    }
+    saveStatus = 'ok';
+  }catch(e){
+    console.error('불러오기 실패', e);
+    db = { days: {} };
+    saveStatus = 'error';
+  }
+}
+
+async function saveDB(){
+  try{
+    const url = `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: supabaseHeaders({
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates,return=minimal'
+      }),
+      body: JSON.stringify([{ key: STORAGE_KEY, value: JSON.stringify(db) }])
+    });
+    if(!res.ok) throw new Error('save failed: ' + res.status);
+    if(saveStatus !== 'ok'){ saveStatus = 'ok'; render(); }
+  }catch(e){
+    console.error('저장 실패', e);
+    if(saveStatus !== 'error'){ saveStatus = 'error'; render(); }
+  }
+}
+
+function ensureDate(k){
+  if(!db.days[k]) db.days[k] = { tasks: [], gratitude: [], lessons: [] };
+  if(!db.days[k].gratitude) db.days[k].gratitude = [];
+  if(!db.days[k].lessons) db.days[k].lessons = [];
+  return k;
+}
+function ensureToday(){
+  return ensureDate(todayKey());
+}
+function ensureActiveDay(){
+  if(!selectedDateKey) selectedDateKey = todayKey();
+  return ensureDate(selectedDateKey);
+}
+
+function dayTotals(day){
+  let income = 0, expense = 0;
+  day.tasks.forEach(t=>{
+    if(t.done && t.amount){
+      if(t.amount > 0) income += t.amount;
+      else expense += Math.abs(t.amount);
+    }
+  });
+  return { income, expense, net: income - expense };
+}
+
+function sumTotals(list){
+  return list.reduce((acc,t)=>({income:acc.income+t.income, expense:acc.expense+t.expense, net:acc.net+t.net}), {income:0,expense:0,net:0});
+}
+
+function categoryBreakdown(dateKeys){
+  const totals = {};
+  dateKeys.forEach(k=>{
+    const day = db.days[k];
+    if(!day) return;
+    day.tasks.forEach(t=>{
+      if(t.done && t.amount && t.amount < 0){
+        const cat = categorize(t.text);
+        totals[cat] = (totals[cat]||0) + Math.abs(t.amount);
+      }
+    });
+  });
+  return Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+}
+
+const WEEKDAY_SHORT = ['일','월','화','수','목','금','토'];
+
+function computeStats(){
+  const dateKeys = Object.keys(db.days).sort();
+  let totalTasks=0, doneTasks=0, totalGratitude=0, totalLessons=0;
+  let totalIncome=0, totalExpense=0;
+  const weekdayExpense = [0,0,0,0,0,0,0];
+  const weekdayDayCount = [0,0,0,0,0,0,0];
+  const monthlyMap = {};
+
+  dateKeys.forEach(k=>{
+    const day = db.days[k];
+    totalTasks += day.tasks.length;
+    doneTasks += day.tasks.filter(t=>t.done).length;
+    totalGratitude += (day.gratitude||[]).length;
+    totalLessons += (day.lessons||[]).length;
+    const t = dayTotals(day);
+    totalIncome += t.income;
+    totalExpense += t.expense;
+    const mk = monthKeyOf(k);
+    if(!monthlyMap[mk]) monthlyMap[mk] = {income:0, expense:0};
+    monthlyMap[mk].income += t.income;
+    monthlyMap[mk].expense += t.expense;
+    const wd = new Date(k+'T00:00:00').getDay();
+    weekdayExpense[wd] += t.expense;
+    weekdayDayCount[wd] += 1;
+  });
+
+  const weekdayAvg = weekdayExpense.map((sum,i)=> weekdayDayCount[i] ? sum/weekdayDayCount[i] : 0);
+
+  // 연속 기록일수: 오늘부터 거슬러 올라가며 활동(할일/감사/교훈 중 하나라도)이 있는 날 카운트
+  let streak = 0;
+  let cursor = new Date();
+  while(true){
+    const k = todayKey(cursor);
+    const day = db.days[k];
+    const hasActivity = day && (day.tasks.length>0 || (day.gratitude&&day.gratitude.length>0) || (day.lessons&&day.lessons.length>0));
+    if(hasActivity){ streak++; cursor.setDate(cursor.getDate()-1); }
+    else break;
+  }
+
+  const monthKeys = Object.keys(monthlyMap).sort();
+  const monthlyTrend = monthKeys.slice(-6).map(mk=>({ mk, ...monthlyMap[mk], net: monthlyMap[mk].income - monthlyMap[mk].expense }));
+
+  return {
+    totalDays: dateKeys.length,
+    totalTasks, doneTasks,
+    completionRate: totalTasks ? doneTasks/totalTasks : 0,
+    totalGratitude, totalLessons,
+    totalIncome, totalExpense,
+    net: totalIncome - totalExpense,
+    weekdayAvg, weekdayDayCount,
+    monthlyTrend,
+    streak,
+    catBreakdown: categoryBreakdown(dateKeys)
+  };
+}
+
+/* ---------- render ---------- */
+function render(){
+  const app = document.getElementById('app');
+  ensureToday(); // '오늘' 버킷은 항상 존재하도록 보장
+  const todayK = todayKey();
+  if(!selectedDateKey) selectedDateKey = todayK;
+  const activeK = ensureDate(selectedDateKey);
+  const now = new Date();
+  const [ay, am, ad] = activeK.split('-').map(Number);
+  const activeDateObj = new Date(ay, am-1, ad);
+  const thisMonthKey = monthKeyOf(activeK);
+  const monthTotals = sumTotals(Object.keys(db.days).filter(k=>monthKeyOf(k)===thisMonthKey).map(k=>dayTotals(db.days[k])));
+  const isPastView = activeK !== todayK;
+
+  app.innerHTML = `
+    <div class="masthead">
+      <h1>하루장</h1>
+      <div class="sub">
+        <div class="date-picker-row">
+          <span class="date-display">${fmtDateLabel(activeK)}</span>
+          <input type="date" id="date-picker" class="date-input" value="${activeK}" max="${todayK}" />
+        </div>
+        <span class="week">${weekNumber(activeDateObj)}주차</span>
+      </div>
+    </div>
+    ${saveStatus === 'error' ? `
+      <div class="error-banner">⚠️ 저장에 실패했어요. 인터넷 연결을 확인하고 잠시 후 다시 시도해주세요.</div>
+    ` : ''}
+    ${isPastView ? `
+      <div class="past-banner">
+        📅 <b>${fmtDateLabel(activeK)}</b> 기록을 작성하고 있어요
+        <button class="jump-today-btn" id="jump-today-btn">오늘로 돌아가기</button>
+      </div>
+    ` : ''}
+    <div class="tabbar">
+      <button class="tab-btn ${activeTab==='today'?'active':''}" data-tab="today">${isPastView ? '기록' : '오늘'}</button>
+      <button class="tab-btn ${activeTab==='journal'?'active':''}" data-tab="journal">감사·교훈</button>
+      <button class="tab-btn ${activeTab==='stats'?'active':''}" data-tab="stats">통계</button>
+      <button class="tab-btn ${activeTab==='history'?'active':''}" data-tab="history">지난 기록</button>
+    </div>
+    <div id="tab-content"></div>
+    <div class="footnote">기록은 사용자님의 개인 데이터베이스에 저장돼요 · 하루장</div>
+    ${exportModal.open ? renderExportModal() : ''}
+  `;
+
+  const monthDateKeys = Object.keys(db.days).filter(k=>monthKeyOf(k)===thisMonthKey);
+  const monthCatBreakdown = categoryBreakdown(monthDateKeys);
+
+  const content = document.getElementById('tab-content');
+  if(activeTab === 'today') content.innerHTML = renderTodayTab(activeK, monthTotals, monthCatBreakdown, isPastView);
+  else if(activeTab === 'journal') content.innerHTML = renderJournalTab(activeK, isPastView);
+  else if(activeTab === 'stats') content.innerHTML = renderStatsTab();
+  else content.innerHTML = renderHistoryTab(todayK);
+
+  bindEvents(todayK);
+  justStampedId = null;
+}
+
+function renderCategoryLine(breakdown){
+  if(!breakdown || breakdown.length === 0) return '';
+  return `<p class="add-hint" style="margin:-4px 0 18px;">이번 달 많이 쓴 곳 · ${breakdown.slice(0,3).map(([cat,amt])=>`${cat} ${fmtWon(amt)}`).join(' · ')}</p>`;
+}
+
+function renderTodayTab(dayK, monthTotals, monthCatBreakdown, isPastView){
+  const today = db.days[dayK];
+  const openTasks = today.tasks.filter(t=>!t.done);
+  const doneTasks = today.tasks.filter(t=>t.done).sort((a,b)=>a.doneAt-b.doneAt);
+  const totals = dayTotals(today);
+  const dayWord = isPastView ? '이 날' : '오늘';
+
+  return `
+    <div class="strip-heading">${dayWord}</div>
+    <div class="ledger-strip">
+      <div class="ledger-chip"><span class="lbl">수입</span><span class="val income">${fmtWon(totals.income)}</span></div>
+      <div class="ledger-chip"><span class="lbl">지출</span><span class="val expense">${fmtWon(totals.expense)}</span></div>
+      <div class="ledger-chip"><span class="lbl">순액</span><span class="val ${totals.net>=0?'income':'expense'}">${fmtWon(totals.net)}</span></div>
+    </div>
+    <div class="strip-heading">${fmtMonthLabel(monthKeyOf(dayK))}</div>
+    <div class="ledger-strip secondary">
+      <div class="ledger-chip"><span class="lbl">수입</span><span class="val income">${fmtWon(monthTotals.income)}</span></div>
+      <div class="ledger-chip"><span class="lbl">지출</span><span class="val expense">${fmtWon(monthTotals.expense)}</span></div>
+      <div class="ledger-chip"><span class="lbl">순액</span><span class="val ${monthTotals.net>=0?'income':'expense'}">${fmtWon(monthTotals.net)}</span></div>
+    </div>
+    ${renderCategoryLine(monthCatBreakdown)}
+
+    <div class="board">
+      <div class="panel">
+        <div class="panel-title">${dayWord}의 할 일 <span class="count">${openTasks.length}개 남음</span></div>
+        <div class="add-row">
+          <input id="new-task-input" type="text" placeholder="할 일을 한 줄로" maxlength="120" />
+          <button class="submit" id="add-task-btn">기입</button>
+        </div>
+        <p class="add-hint">"주유비 -50000"처럼 부호와 숫자만 적어도 금액이 자동으로 인식돼요. -면 지출, +면 수입.</p>
+        <p class="memo-note">📝 지출·수입 내역을 적을 땐 꼭 +, - 부호로 표기해주세요. 부호가 없으면 금액으로 인식되지 않아요.</p>
+        <ul class="tasks" id="task-list">
+          ${
+            today.tasks.length === 0
+            ? `<div class="empty-tasks">아직 적어 넣은 일이 없어요. 위에 첫 줄을 채워보세요.</div>`
+            : today.tasks.map(t=> renderTaskRow(t)).join('')
+          }
+        </ul>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">${dayWord}의 기록 <span class="count">${doneTasks.length}건</span></div>
+        <ul class="log" id="log-list">
+          ${
+            doneTasks.length === 0
+            ? `<div class="empty-log">완료한 일이 여기 시간과 함께 쌓여요.</div>`
+            : doneTasks.map(t=> renderLogRow(t)).join('')
+          }
+        </ul>
+      </div>
+    </div>
+  `;
+}
+
+function renderLogRow(t){
+  if(editingTaskId === t.id){
+    return `
+      <li class="log-row" data-id="${t.id}">
+        <div class="edit-row">
+          <input type="text" id="edit-task-text" value="${escapeHtml(editDraft.text)}" maxlength="120" />
+          <input type="text" id="edit-task-amount" inputmode="numeric" placeholder="-8000 / +8000" value="${escapeHtml(editDraft.amount)}" autocomplete="off" />
+          <button class="icon-btn save" data-action="save-edit-task" data-id="${t.id}" aria-label="저장">✓</button>
+          <button class="icon-btn" data-action="cancel-edit-task" aria-label="취소">✕</button>
+        </div>
+      </li>
+    `;
+  }
+  const tag = t.amount ? (t.amount < 0 ? categorize(t.text) : '수입') : '';
+  return `
+    <li class="log-row">
+      <span class="log-time">${fmtTime(t.doneAt)}</span>
+      <span class="log-label" data-action="edit-task" data-id="${t.id}">${escapeHtml(t.text)}</span>
+      ${t.amount ? `<span class="log-amount ${t.amount<0?'expense':'income'}">${fmtWon(t.amount)}</span>` : ''}
+      ${tag ? `<span class="tag-pill">${tag}</span>` : ''}
+      <button class="icon-btn" data-action="delete" data-id="${t.id}" aria-label="삭제">✕</button>
+    </li>
+  `;
+}
+
+function renderTaskRow(t){
+  if(editingTaskId === t.id){
+    return `
+      <li class="task-row" data-id="${t.id}">
+        <div class="edit-row">
+          <input type="text" id="edit-task-text" value="${escapeHtml(editDraft.text)}" maxlength="120" />
+          <input type="text" id="edit-task-amount" inputmode="numeric" placeholder="-8000 / +8000" value="${escapeHtml(editDraft.amount)}" autocomplete="off" />
+          <button class="icon-btn save" data-action="save-edit-task" data-id="${t.id}" aria-label="저장">✓</button>
+          <button class="icon-btn" data-action="cancel-edit-task" aria-label="취소">✕</button>
+        </div>
+      </li>
+    `;
+  }
+  const tag = t.amount ? (t.amount < 0 ? categorize(t.text) : '수입') : '';
+  return `
+    <li class="task-row" data-id="${t.id}">
+      <button class="checkbox ${t.done?'checked':''}" data-action="toggle" data-id="${t.id}" aria-label="완료 표시"></button>
+      <span class="task-text ${t.done?'done':''}" data-action="edit-task" data-id="${t.id}">${escapeHtml(t.text)}</span>
+      ${t.amount ? `<span class="task-amount ${t.amount<0?'expense':'income'}">${fmtWon(t.amount)}</span>` : ''}
+      ${tag ? `<span class="tag-pill">${tag}</span>` : ''}
+      <button class="icon-btn" data-action="delete" data-id="${t.id}" aria-label="삭제">✕</button>
+      <span class="stamp-burst ${justStampedId===t.id?'play':''}">완료</span>
+    </li>
+  `;
+}
+
+function renderJournalTab(dayK, isPastView){
+  const today = db.days[dayK];
+  const dayWord = isPastView ? '이 날' : '오늘';
+  return `
+    <div class="journal-board">
+      <div class="panel journal-panel">
+        <div class="panel-title">감사한 일 <span class="count">${today.gratitude.length}개</span></div>
+        <div class="journal-add-row">
+          <textarea id="new-gratitude-input" placeholder="짧아도 좋아요, 한 줄이면 충분해요" maxlength="200" rows="1"></textarea>
+          <button id="add-gratitude-btn">기입</button>
+        </div>
+        <ul class="journal-list" id="gratitude-list">
+          ${
+            today.gratitude.length === 0
+            ? `<div class="empty-journal">작은 일이라도 좋아요. ${dayWord} 고마웠던 순간을 남겨보세요.</div>`
+            : today.gratitude.slice().reverse().map(g=> renderJournalEntry(g,'gratitude')).join('')
+          }
+        </ul>
+      </div>
+
+      <div class="panel journal-panel">
+        <div class="panel-title">${dayWord}의 교훈 <span class="count">${today.lessons.length}개</span></div>
+        <div class="journal-add-row">
+          <textarea id="new-lesson-input" placeholder="단어 하나여도 괜찮아요" maxlength="200" rows="1"></textarea>
+          <button id="add-lesson-btn">기입</button>
+        </div>
+        <ul class="journal-list" id="lesson-list">
+          ${
+            today.lessons.length === 0
+            ? `<div class="empty-journal">${dayWord} 배운 것, 다시 새기고 싶은 것을 남겨보세요.</div>`
+            : today.lessons.slice().reverse().map(l=> renderJournalEntry(l,'lesson')).join('')
+          }
+        </ul>
+      </div>
+    </div>
+  `;
+}
+
+function renderJournalEntry(entry, kind){
+  const editing = (kind==='gratitude' && editingGratitudeId===entry.id) || (kind==='lesson' && editingLessonId===entry.id);
+  if(editing){
+    return `
+      <li class="journal-entry" data-id="${entry.id}">
+        <div class="edit-row">
+          <textarea id="edit-journal-text" rows="2" maxlength="200">${escapeHtml(editJournalDraft)}</textarea>
+          <button class="icon-btn save" data-action="save-edit-${kind}" data-id="${entry.id}" aria-label="저장">✓</button>
+          <button class="icon-btn" data-action="cancel-edit-${kind}" aria-label="취소">✕</button>
+        </div>
+      </li>
+    `;
+  }
+  return `
+    <li class="journal-entry" data-id="${entry.id}">
+      <span class="mark">❝</span>
+      <span class="body" data-action="edit-${kind}" data-id="${entry.id}">${escapeHtml(entry.text)}<span class="time">${fmtTime(entry.at)}</span></span>
+      <button class="icon-btn" data-action="delete-${kind}" data-id="${entry.id}" aria-label="삭제">✕</button>
+    </li>
+  `;
+}
+
+function renderStatsTab(){
+  const s = computeStats();
+
+  if(s.totalDays === 0){
+    return `<div class="empty-state">아직 쌓인 기록이 없어요. 며칠 기록하시면 여기서 패턴이 보이기 시작해요.</div>`;
+  }
+
+  const maxCat = s.catBreakdown.length ? s.catBreakdown[0][1] : 0;
+  const maxWeekday = Math.max(...s.weekdayAvg, 1);
+  const maxAbsNet = Math.max(...s.monthlyTrend.map(m=>Math.abs(m.net)), 1);
+
+  const busiestWeekdayIdx = s.weekdayAvg.indexOf(Math.max(...s.weekdayAvg));
+  const insightParts = [];
+  if(maxCat > 0) insightParts.push(`가장 많이 쓴 곳은 <b>${s.catBreakdown[0][0]}</b>이에요.`);
+  if(s.weekdayAvg[busiestWeekdayIdx] > 0) insightParts.push(`<b>${WEEKDAY_SHORT[busiestWeekdayIdx]}요일</b>에 지출이 가장 커요.`);
+  if(s.totalTasks > 0) insightParts.push(`완료율은 <b>${Math.round(s.completionRate*100)}%</b>예요.`);
+
+  return `
+    <div class="strip-heading">전체 요약</div>
+    <div class="ledger-strip secondary">
+      <div class="ledger-chip"><span class="lbl">기록 일수</span><span class="val">${s.totalDays}일</span></div>
+      <div class="ledger-chip"><span class="lbl">연속 기록</span><span class="val ${s.streak>0?'income':''}">${s.streak}일째</span></div>
+      <div class="ledger-chip"><span class="lbl">할 일 완료율</span><span class="val">${Math.round(s.completionRate*100)}%</span></div>
+    </div>
+    <div class="ledger-strip secondary">
+      <div class="ledger-chip"><span class="lbl">누적 수입</span><span class="val income">${fmtWon(s.totalIncome)}</span></div>
+      <div class="ledger-chip"><span class="lbl">누적 지출</span><span class="val expense">${fmtWon(s.totalExpense)}</span></div>
+      <div class="ledger-chip"><span class="lbl">누적 순액</span><span class="val ${s.net>=0?'income':'expense'}">${fmtWon(s.net)}</span></div>
+    </div>
+
+    ${insightParts.length ? `<p class="insight-line">${insightParts.join(' · ')}</p>` : ''}
+
+    <div class="board">
+      <div class="panel">
+        <div class="panel-title">카테고리별 지출</div>
+        ${
+          s.catBreakdown.length === 0
+          ? `<div class="empty-state" style="padding:20px 4px;">아직 완료된 지출 기록이 없어요.</div>`
+          : `<div class="bar-list">
+              ${s.catBreakdown.map(([cat,amt])=>`
+                <div class="bar-row">
+                  <span class="bar-label">${cat}</span>
+                  <div class="bar-track"><div class="bar-fill expense" style="width:${maxCat? Math.max(4, amt/maxCat*100):0}%;"></div></div>
+                  <span class="bar-value">${fmtWon(amt)}</span>
+                </div>
+              `).join('')}
+            </div>`
+        }
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">요일별 평균 지출</div>
+        <div class="vchart">
+          ${WEEKDAY_SHORT.map((w,i)=>{
+            const h = maxWeekday ? Math.round(s.weekdayAvg[i]/maxWeekday*100) : 0;
+            return `
+              <div class="vcol">
+                <div class="vcol-track">
+                  <div class="vcol-bar expense ${i===busiestWeekdayIdx && s.weekdayAvg[i]>0 ?'highlight':''}" style="height:${h}%;"></div>
+                </div>
+                <span class="vcol-label">${w}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:22px;">
+      <div class="panel-title">월별 순액 추이</div>
+      ${
+        s.monthlyTrend.length === 0
+        ? `<div class="empty-state" style="padding:20px 4px;">아직 월별로 비교할 데이터가 부족해요.</div>`
+        : `<div class="net-chart">
+            ${s.monthlyTrend.map(m=>{
+              const h = maxAbsNet ? Math.round(Math.abs(m.net)/maxAbsNet*70) : 0;
+              return `
+                <div class="net-col">
+                  <div class="net-top">${m.net>=0? `<div class="net-bar income" style="height:${h}px;"></div>` : ''}</div>
+                  <div class="net-zero"></div>
+                  <div class="net-bottom">${m.net<0? `<div class="net-bar expense" style="height:${h}px;"></div>` : ''}</div>
+                  <span class="net-label">${fmtMonthLabel(m.mk).replace(/^\d+년 /,'')}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>`
+      }
+    </div>
+
+    <div class="board" style="margin-top:22px;">
+      <div class="panel">
+        <div class="panel-title">기록 습관</div>
+        <div class="log">
+          <div class="log-row"><span class="log-label">완료한 할 일</span><span class="log-amount income">${s.doneTasks} / ${s.totalTasks}</span></div>
+          <div class="log-row"><span class="log-label">쌓인 감사한 일</span><span class="log-amount income">${s.totalGratitude}개</span></div>
+          <div class="log-row"><span class="log-label">쌓인 교훈</span><span class="log-amount income">${s.totalLessons}개</span></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderHistoryTab(todayK){
+  const monthMap = {}; // monthKey -> [dateKey,...]
+  Object.keys(db.days).forEach(k=>{
+    const mk = monthKeyOf(k);
+    if(!monthMap[mk]) monthMap[mk] = [];
+    monthMap[mk].push(k);
+  });
+  const monthKeys = Object.keys(monthMap).sort((a,b)=>b.localeCompare(a));
+
+  const addPastRow = `
+    <div class="add-past-row">
+      <span class="add-past-label">빠진 날짜 기록하기</span>
+      <input type="date" id="add-past-date" class="date-input" max="${todayK}" />
+      <button class="submit" id="add-past-btn">이동</button>
+    </div>
+  `;
+
+  if(monthKeys.length === 0){
+    return `
+      ${addPastRow}
+      <div class="history-actions">
+        <button class="export-btn" id="csv-btn">가계부 CSV 다운로드</button>
+        <button class="export-btn" id="export-btn">내보내기</button>
+      </div>
+      <div class="empty-state">아직 쌓인 기록이 없어요.</div>
+    `;
+  }
+
+  return `
+    ${addPastRow}
+    <div class="history-actions">
+      <button class="export-btn" id="csv-btn">가계부 CSV 다운로드</button>
+      <button class="export-btn" id="export-btn">전체 기록 내보내기</button>
+    </div>
+    ${
+      monthKeys.map(mk=>{
+        const dateKeys = monthMap[mk].sort((a,b)=>b.localeCompare(a));
+        const monthTotals = sumTotals(dateKeys.map(k=>dayTotals(db.days[k])));
+        const catBreakdown = categoryBreakdown(dateKeys);
+        return `
+          <div class="month-group">
+            <div class="month-head">
+              <span>${fmtMonthLabel(mk)}</span>
+              <span class="month-totals">
+                수입 <span class="income">${fmtWon(monthTotals.income)}</span> ·
+                지출 <span class="expense">${fmtWon(monthTotals.expense)}</span> ·
+                순액 <span class="${monthTotals.net>=0?'income':'expense'}">${fmtWon(monthTotals.net)}</span>
+              </span>
+            </div>
+            ${catBreakdown.length ? `<p class="add-hint" style="margin:0 0 10px;">카테고리 · ${catBreakdown.map(([cat,amt])=>`${cat} ${fmtWon(amt)}`).join(' · ')}</p>` : ''}
+            ${dateKeys.map(k=> renderHistoryDay(k, k===todayK)).join('')}
+          </div>
+        `;
+      }).join('')
+    }
+  `;
+}
+
+function renderHistoryDay(k, isToday){
+  const day = db.days[k];
+  const done = day.tasks.filter(t=>t.done).sort((a,b)=>a.doneAt-b.doneAt);
+  const t = dayTotals(day);
+  const open = !!historyOpenDays[k];
+  return `
+    <div class="history-day">
+      <div class="history-day-head" data-action="history-day" data-key="${k}">
+        <span>${fmtDateLabel(k)}${isToday?' · 오늘':''} · ${done.length}/${day.tasks.length} 완료</span>
+        <span class="hd-net ${t.net>=0?'pos':'neg'}">순액 ${fmtWon(t.net)}</span>
+      </div>
+      <div class="history-day-body ${open?'open':''}">
+        ${
+          done.length === 0
+          ? `<div class="empty-log" style="padding:8px 0;">완료한 일이 없어요.</div>`
+          : done.map(t=>`
+            <div class="log-row">
+              <span class="log-time">${fmtTime(t.doneAt)}</span>
+              <span class="log-label">${escapeHtml(t.text)}</span>
+              ${t.amount ? `<span class="log-amount ${t.amount<0?'expense':'income'}">${fmtWon(t.amount)}</span>` : ''}
+              ${t.amount ? `<span class="tag-pill">${t.amount<0?categorize(t.text):'수입'}</span>` : ''}
+            </div>
+          `).join('')
+        }
+        ${(day.gratitude && day.gratitude.length) ? `
+          <div class="sub-heading">감사한 일</div>
+          ${day.gratitude.map(g=>`<div class="log-row"><span class="log-time">${fmtTime(g.at)}</span><span class="log-label">${escapeHtml(g.text)}</span></div>`).join('')}
+        ` : ''}
+        ${(day.lessons && day.lessons.length) ? `
+          <div class="sub-heading">오늘의 교훈</div>
+          ${day.lessons.map(l=>`<div class="log-row"><span class="log-time">${fmtTime(l.at)}</span><span class="log-label">${escapeHtml(l.text)}</span></div>`).join('')}
+        ` : ''}
+        ${!isToday ? `<button class="jump-today-btn" style="margin-top:10px;" data-action="edit-day" data-key="${k}">이 날 기록 추가·수정하기</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderExportModal(){
+  return `
+    <div class="modal-overlay" id="export-overlay">
+      <div class="modal-box">
+        <h3>기록 내보내기</h3>
+        <textarea id="export-textarea" readonly>${escapeHtml(exportModal.text)}</textarea>
+        <div class="modal-note">전체 선택 후 복사하거나, 아래 버튼으로 바로 복사할 수 있어요.</div>
+        <div class="modal-actions">
+          <button id="export-copy-btn">복사하기</button>
+          <button class="primary" id="export-close-btn">닫기</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ---------- export ---------- */
+function buildExportText(){
+  const dateKeys = Object.keys(db.days).sort((a,b)=>a.localeCompare(b));
+  let lines = ['하루장 전체 기록', ''];
+  dateKeys.forEach(k=>{
+    const day = db.days[k];
+    const t = dayTotals(day);
+    lines.push(`■ ${fmtDateLabel(k)}`);
+    const done = day.tasks.filter(x=>x.done).sort((a,b)=>a.doneAt-b.doneAt);
+    const open = day.tasks.filter(x=>!x.done);
+    if(done.length){
+      lines.push('  [완료]');
+      done.forEach(x=>{
+        let line = `  - ${fmtTime(x.doneAt)} ${x.text}`;
+        if(x.amount) line += ` (${fmtWon(x.amount)}, ${x.amount<0?categorize(x.text):'수입'})`;
+        lines.push(line);
+      });
+    }
+    if(open.length){
+      lines.push('  [미완료]');
+      open.forEach(x=> lines.push(`  - ${x.text}`));
+    }
+    if(t.income || t.expense) lines.push(`  수입 ${fmtWon(t.income)} / 지출 ${fmtWon(t.expense)} / 순액 ${fmtWon(t.net)}`);
+    if(day.gratitude && day.gratitude.length){
+      lines.push('  [감사한 일]');
+      day.gratitude.forEach(g=> lines.push(`  - ${fmtTime(g.at)} ${g.text}`));
+    }
+    if(day.lessons && day.lessons.length){
+      lines.push('  [오늘의 교훈]');
+      day.lessons.forEach(l=> lines.push(`  - ${fmtTime(l.at)} ${l.text}`));
+    }
+    lines.push('');
+  });
+  return lines.join('\n');
+}
+
+/* ---------- CSV export (가계부) ---------- */
+function csvEscape(cell){
+  const s = String(cell);
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+}
+
+function buildExpenseCSV(){
+  const rows = [['날짜','시간','구분','카테고리','항목','금액']];
+  const dateKeys = Object.keys(db.days).sort((a,b)=>a.localeCompare(b));
+  dateKeys.forEach(k=>{
+    const day = db.days[k];
+    day.tasks
+      .filter(t=>t.done && t.amount)
+      .sort((a,b)=>a.doneAt-b.doneAt)
+      .forEach(t=>{
+        const type = t.amount < 0 ? '지출' : '수입';
+        const cat = t.amount < 0 ? categorize(t.text) : '수입';
+        rows.push([k, fmtTime(t.doneAt), type, cat, t.text, t.amount]);
+      });
+  });
+  return rows;
+}
+
+function downloadExpenseCSV(){
+  const rows = buildExpenseCSV();
+  if(rows.length <= 1){
+    alert('아직 다운로드할 지출/수입 기록이 없어요.');
+    return;
+  }
+  const csv = rows.map(r => r.map(csvEscape).join(',')).join('\r\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `하루장_가계부_${todayKey()}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ---------- events ---------- */
+function bindEvents(todayK){
+  document.querySelectorAll('[data-tab]').forEach(btn=>{
+    btn.onclick = ()=>{ activeTab = btn.dataset.tab; render(); };
+  });
+
+  const datePicker = document.getElementById('date-picker');
+  if(datePicker) datePicker.addEventListener('change', e=>{
+    if(e.target.value){ selectedDateKey = e.target.value; render(); }
+  });
+  const jumpTodayBtn = document.getElementById('jump-today-btn');
+  if(jumpTodayBtn) jumpTodayBtn.onclick = ()=>{ selectedDateKey = todayKey(); render(); };
+
+  if(activeTab === 'today'){
+    document.getElementById('add-task-btn').onclick = addTask;
+    document.getElementById('new-task-input').addEventListener('keydown', e=>{ if(e.key==='Enter') addTask(); });
+    document.querySelectorAll('[data-action="toggle"]').forEach(btn=>{ btn.onclick = ()=> toggleTask(btn.dataset.id); });
+    document.querySelectorAll('[data-action="delete"]').forEach(btn=>{ btn.onclick = ()=> deleteTask(btn.dataset.id); });
+    document.querySelectorAll('[data-action="edit-task"]').forEach(el=>{
+      el.onclick = ()=> startEditTask(el.dataset.id);
+    });
+    const saveBtn = document.querySelector('[data-action="save-edit-task"]');
+    if(saveBtn) saveBtn.onclick = ()=> saveEditTask(saveBtn.dataset.id);
+    const cancelBtn = document.querySelector('[data-action="cancel-edit-task"]');
+    if(cancelBtn) cancelBtn.onclick = ()=>{ editingTaskId=null; render(); };
+  }
+
+  if(activeTab === 'journal'){
+    const gBtn = document.getElementById('add-gratitude-btn');
+    if(gBtn) gBtn.onclick = addGratitude;
+    const gInput = document.getElementById('new-gratitude-input');
+    if(gInput) gInput.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); addGratitude(); } });
+    const lBtn = document.getElementById('add-lesson-btn');
+    if(lBtn) lBtn.onclick = addLesson;
+    const lInput = document.getElementById('new-lesson-input');
+    if(lInput) lInput.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); addLesson(); } });
+
+    document.querySelectorAll('[data-action="delete-gratitude"]').forEach(btn=>{ btn.onclick = ()=> deleteEntry('gratitude', btn.dataset.id); });
+    document.querySelectorAll('[data-action="delete-lesson"]').forEach(btn=>{ btn.onclick = ()=> deleteEntry('lesson', btn.dataset.id); });
+    document.querySelectorAll('[data-action="edit-gratitude"]').forEach(el=>{ el.onclick = ()=> startEditJournal('gratitude', el.dataset.id); });
+    document.querySelectorAll('[data-action="edit-lesson"]').forEach(el=>{ el.onclick = ()=> startEditJournal('lesson', el.dataset.id); });
+    const saveG = document.querySelector('[data-action="save-edit-gratitude"]');
+    if(saveG) saveG.onclick = ()=> saveEditJournal('gratitude', saveG.dataset.id);
+    const saveL = document.querySelector('[data-action="save-edit-lesson"]');
+    if(saveL) saveL.onclick = ()=> saveEditJournal('lesson', saveL.dataset.id);
+    const cancelG = document.querySelector('[data-action="cancel-edit-gratitude"]');
+    if(cancelG) cancelG.onclick = ()=>{ editingGratitudeId=null; render(); };
+    const cancelL = document.querySelector('[data-action="cancel-edit-lesson"]');
+    if(cancelL) cancelL.onclick = ()=>{ editingLessonId=null; render(); };
+  }
+
+  if(activeTab === 'history'){
+    document.querySelectorAll('[data-action="history-day"]').forEach(el=>{
+      el.onclick = ()=>{ historyOpenDays[el.dataset.key] = !historyOpenDays[el.dataset.key]; render(); };
+    });
+    document.querySelectorAll('[data-action="edit-day"]').forEach(el=>{
+      el.onclick = (e)=>{ e.stopPropagation(); selectedDateKey = el.dataset.key; activeTab = 'today'; render(); };
+    });
+    const addPastBtn = document.getElementById('add-past-btn');
+    if(addPastBtn) addPastBtn.onclick = ()=>{
+      const dateInput = document.getElementById('add-past-date');
+      if(dateInput && dateInput.value){
+        selectedDateKey = dateInput.value;
+        activeTab = 'today';
+        render();
+      }
+    };
+    const exportBtn = document.getElementById('export-btn');
+    if(exportBtn) exportBtn.onclick = ()=>{ exportModal = { open:true, text: buildExportText() }; render(); };
+    const csvBtn = document.getElementById('csv-btn');
+    if(csvBtn) csvBtn.onclick = downloadExpenseCSV;
+  }
+
+  const closeBtn = document.getElementById('export-close-btn');
+  if(closeBtn) closeBtn.onclick = ()=>{ exportModal = { open:false, text:'' }; render(); };
+  const copyBtn = document.getElementById('export-copy-btn');
+  if(copyBtn) copyBtn.onclick = async ()=>{
+    const ta = document.getElementById('export-textarea');
+    try{
+      await navigator.clipboard.writeText(exportModal.text);
+      copyBtn.textContent = '복사됨 ✓';
+      setTimeout(()=>{ copyBtn.textContent = '복사하기'; }, 1500);
+    }catch(e){
+      ta.select();
+      document.execCommand('copy');
+    }
+  };
+}
+
+/* ---------- task actions ---------- */
+function parseSignedAmount(raw){
+  if(raw === undefined || raw === null) return null;
+  const str = String(raw).trim();
+  if(!str) return null;
+  const isIncome = str.startsWith('+');
+  const num = parseFloat(str.replace(/[+,\s]/g,''));
+  if(isNaN(num) || num === 0) return null;
+  return isIncome ? Math.abs(num) : -Math.abs(num);
+}
+
+// "택시비 -5900원", "주유비용 -50000" 처럼 문장 안에 금액이 섞여 있으면 뽑아내고, 남은 텍스트를 돌려준다.
+// 부호(+/-)가 붙어있으면 '원' 없이도 인식하고, 부호 없는 숫자는 오탐 방지를 위해 '원'이 붙어야만 인식한다.
+function extractAmountFromText(text){
+  let match = text.match(/([+-]\d[\d,]*)\s*원?/);
+  if(!match) match = text.match(/(\d[\d,]*)\s*원/);
+  if(!match) return null;
+  const raw = match[1].replace(/,/g,'');
+  const amount = parseSignedAmount(raw);
+  if(amount === null) return null;
+  const cleanText = (text.slice(0, match.index) + text.slice(match.index + match[0].length)).replace(/\s+/g,' ').trim();
+  if(!cleanText) return null;
+  return { amount, cleanText };
+}
+
+async function addTask(){
+  const input = document.getElementById('new-task-input');
+  let text = input.value.trim();
+  if(!text) return;
+  let amount = null;
+  const extracted = extractAmountFromText(text);
+  if(extracted){ amount = extracted.amount; text = extracted.cleanText; }
+  const k = ensureActiveDay();
+  db.days[k].tasks.push({ id: uid(), text, done:false, doneAt:null, amount });
+  input.value='';
+  render();
+  document.getElementById('new-task-input').focus();
+  await saveDB();
+}
+
+async function toggleTask(id){
+  const k = ensureActiveDay();
+  const t = db.days[k].tasks.find(x=>x.id===id);
+  if(!t) return;
+  t.done = !t.done;
+  t.doneAt = t.done ? Date.now() : null;
+  if(t.done) justStampedId = id;
+  render();
+  await saveDB();
+}
+
+async function deleteTask(id){
+  const k = ensureActiveDay();
+  db.days[k].tasks = db.days[k].tasks.filter(x=>x.id!==id);
+  render();
+  await saveDB();
+}
+
+function startEditTask(id){
+  const k = ensureActiveDay();
+  const t = db.days[k].tasks.find(x=>x.id===id);
+  if(!t) return;
+  editingTaskId = id;
+  editDraft = {
+    text: t.text,
+    amount: t.amount ? (t.amount > 0 ? '+'+t.amount : String(t.amount)) : ''
+  };
+  render();
+  setTimeout(()=>{ const el=document.getElementById('edit-task-text'); if(el) el.focus(); }, 0);
+}
+
+async function saveEditTask(id){
+  const k = ensureActiveDay();
+  const t = db.days[k].tasks.find(x=>x.id===id);
+  if(!t) return;
+  const textEl = document.getElementById('edit-task-text');
+  const amountEl = document.getElementById('edit-task-amount');
+  let text = textEl.value.trim();
+  if(!text) return;
+  let amount = parseSignedAmount(amountEl.value);
+  if(amount === null){
+    const extracted = extractAmountFromText(text);
+    if(extracted){ amount = extracted.amount; text = extracted.cleanText; }
+  }
+  t.text = text;
+  t.amount = amount;
+  editingTaskId = null;
+  render();
+  await saveDB();
+}
+
+/* ---------- journal actions ---------- */
+async function addGratitude(){
+  const input = document.getElementById('new-gratitude-input');
+  const text = input.value.trim();
+  if(!text) return;
+  const k = ensureActiveDay();
+  db.days[k].gratitude.push({ id: uid(), text, at: Date.now() });
+  render();
+  document.getElementById('new-gratitude-input').focus();
+  await saveDB();
+}
+async function addLesson(){
+  const input = document.getElementById('new-lesson-input');
+  const text = input.value.trim();
+  if(!text) return;
+  const k = ensureActiveDay();
+  db.days[k].lessons.push({ id: uid(), text, at: Date.now() });
+  render();
+  document.getElementById('new-lesson-input').focus();
+  await saveDB();
+}
+async function deleteEntry(kind, id){
+  const k = ensureActiveDay();
+  const listKey = kind === 'gratitude' ? 'gratitude' : 'lessons';
+  db.days[k][listKey] = db.days[k][listKey].filter(x=>x.id!==id);
+  render();
+  await saveDB();
+}
+function startEditJournal(kind, id){
+  const k = ensureActiveDay();
+  const listKey = kind === 'gratitude' ? 'gratitude' : 'lessons';
+  const entry = db.days[k][listKey].find(x=>x.id===id);
+  if(!entry) return;
+  editJournalDraft = entry.text;
+  if(kind==='gratitude') editingGratitudeId = id; else editingLessonId = id;
+  render();
+  setTimeout(()=>{ const el=document.getElementById('edit-journal-text'); if(el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }, 0);
+}
+async function saveEditJournal(kind, id){
+  const k = ensureActiveDay();
+  const listKey = kind === 'gratitude' ? 'gratitude' : 'lessons';
+  const entry = db.days[k][listKey].find(x=>x.id===id);
+  const textEl = document.getElementById('edit-journal-text');
+  const text = textEl.value.trim();
+  if(!text) return;
+  entry.text = text;
+  if(kind==='gratitude') editingGratitudeId = null; else editingLessonId = null;
+  render();
+  await saveDB();
+}
+
+(async function init(){
+  await loadDB();
+  render();
+})();
+</script>
+</body>
+</html>
